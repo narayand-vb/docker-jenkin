@@ -1,0 +1,54 @@
+// pipeline {
+//     agent any 
+//     environment {
+//         registry = "narayandvb/dockerp"
+//         registryCredential = 'dockerCred'
+//         dockerImage = ''
+//     }
+    
+//     stages {
+//         stage('Cloning Git') {
+//             steps {
+//                 checkout([$class: 'GitSCM', branches: [[name: '*/user']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[credentialsId: '', url: 'https://github.com/narayand-vb/jenkinCheck']]])       
+//             }
+//         }
+    
+//     // Building Docker images
+//     stage('Building image') {
+//       steps{
+//         script {
+//           docker.build registry
+//         }
+//       }
+//     }
+    
+//      // Uploading Docker images into Docker Hub
+//     stage('Upload Image') {
+//      steps{    
+//          script {
+//             docker.withRegistry( '', registryCredential ) {
+//             dockerImage.push()
+//             }
+//         }
+//       }
+//     }
+    
+//      // Stopping Docker containers for cleaner Docker run
+//      stage('docker stop container') {
+//          steps {
+//             sh 'docker ps -f name=reactfirst -q | xargs --no-run-if-empty docker container stop'
+//             sh 'docker container ls -a -fname=reactfirst -q | xargs -r docker container rm'
+//          }
+//        }
+    
+    
+//     // Running Docker container, make sure port 8096 is opened in 
+//     stage('Docker Run') {
+//      steps{
+//          script {
+//             dockerImage.run("-p 3000:3000 --rm --name reactfirst")
+//          }
+//       }
+//     }
+//   }
+// }  
