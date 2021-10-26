@@ -1,54 +1,38 @@
-// pipeline {
-//     agent any 
-//     environment {
-//         registry = "narayandvb/dockerp"
-//         registryCredential = 'dockerCred'
-//         dockerImage = ''
-//     }
+pipeline{
+    agent any
     
-//     stages {
-//         stage('Cloning Git') {
-//             steps {
-//                 checkout([$class: 'GitSCM', branches: [[name: '*/user']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[credentialsId: '', url: 'https://github.com/narayand-vb/jenkinCheck']]])       
-//             }
-//         }
+    environment {
+        dockerImage = ''
+        registry = 'narayandvb/firstreactapp'
+        registryCredential = "dockerCred"
+    }
     
-//     // Building Docker images
-//     stage('Building image') {
-//       steps{
-//         script {
-//           docker.build registry
-//         }
-//       }
-//     }
-    
-//      // Uploading Docker images into Docker Hub
-//     stage('Upload Image') {
-//      steps{    
-//          script {
-//             docker.withRegistry( '', registryCredential ) {
-//             dockerImage.push()
-//             }
-//         }
-//       }
-//     }
-    
-//      // Stopping Docker containers for cleaner Docker run
-//      stage('docker stop container') {
-//          steps {
-//             sh 'docker ps -f name=reactfirst -q | xargs --no-run-if-empty docker container stop'
-//             sh 'docker container ls -a -fname=reactfirst -q | xargs -r docker container rm'
-//          }
-//        }
-    
-    
-//     // Running Docker container, make sure port 8096 is opened in 
-//     stage('Docker Run') {
-//      steps{
-//          script {
-//             dockerImage.run("-p 3000:3000 --rm --name reactfirst")
-//          }
-//       }
-//     }
-//   }
-// }  
+    stages{
+    stage('Test and compose'){
+        steps{
+            checkout([$class: 'GitSCM', branches: [[name: '*/master']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/narayand-vb/docker-jenkin']]])
+        }
+    }
+    stage('Building and upload image') {
+      steps{
+        script {
+          dockerImage = docker.build registry
+           docker.withRegistry( '', registryCredential ) {
+            dockerImage.push()
+        }
+      }
+    }
+    }
+
+    stage('deploy') {
+         steps {
+           bat 'docker ps -f name=reactfirstcontainer'
+           bat 'docker container ls -a -fname=reactfirstcontainer '
+         script {
+            dockerImage.run("-p 3000:3000 --rm --name reactfirstcontainer")
+         }
+         }
+       }
+     
+    }
+}
